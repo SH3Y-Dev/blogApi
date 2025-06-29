@@ -57,7 +57,9 @@ exports.login = async (req, res, next) => {
       token,
     });
   } catch (err) {
-    throw err;
+    res.status(401).json({
+      status: "Email or Password is Incorrect",
+    });
   }
 };
 

@@ -18,20 +18,11 @@ exports.createPost = async (req, res) => {
 };
 
 
-exports.getPostsByAuthorId = async (req, res) => {
+exports.getAllPostsWithAuthors = async (req, res) => {
   try {
-    const { author } = req.query;
-
-    if (!author) {
-      return res.status(400).json({
-        status: "fail",
-        message: "Please provide an author ID in the query string: ?author=userId",
-      });
-    }
-    const posts = await Post.find({ authorId: author }).populate(
-      "authorId",
-      "firstname lastname email"
-    );
+    const posts = await Post.find()
+      .populate("authorId", "firstname lastname email")
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       status: "success",
@@ -45,3 +36,4 @@ exports.getPostsByAuthorId = async (req, res) => {
     });
   }
 };
+
