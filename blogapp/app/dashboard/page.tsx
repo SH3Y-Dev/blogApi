@@ -3,23 +3,44 @@
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 const Dashboard = () => {
   const [posts, setPosts] = useState([]);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   const fetchPosts = async () => {
+    const token = Cookies.get("token");
+
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
     try {
-      const token = Cookies.get("token");
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/posts/author`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      if (res.status === 401) {
+        toast.error("Unauthorized. Please login.");
+        Cookies.remove("token");
+        localStorage.removeItem("userEmail");
+        router.push("/login");
+        return;
+      }
+
       const data = await res.json();
-      if (data.status === "success") setPosts(data.posts);
+
+      if (data.status === "success") {
+        setPosts(data.posts);
+      }
+
       setLoading(false);
     } catch (err) {
       toast.error("Failed to fetch posts");
@@ -29,8 +50,14 @@ const Dashboard = () => {
   const handlePost = async () => {
     if (!title.trim() || !content.trim()) return toast.error("Fill all fields");
 
+    const token = Cookies.get("token");
+
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
     try {
-      const token = Cookies.get("token");
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/post`, {
         method: "POST",
         headers: {
@@ -39,7 +66,17 @@ const Dashboard = () => {
         },
         body: JSON.stringify({ title, content }),
       });
+
+      if (res.status === 401) {
+        toast.error("Session expired. Login again.");
+        Cookies.remove("token");
+        localStorage.removeItem("userEmail");
+        router.push("/login");
+        return;
+      }
+
       const data = await res.json();
+
       if (data.status === "success") {
         toast.success("Post created");
         setTitle("");

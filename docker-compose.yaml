@@ -1,0 +1,47 @@
+version: '3.8'
+services:
+  service-blog-backend:
+    container_name: blog-backend
+    image: testing_blog_backend:latest
+    build:
+      context: .
+      dockerfile: blogapp-be/docker/Dockerfile
+      target: development
+      args:
+        NODE_ENV: development
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./blogapp-be/.env
+    networks:
+      blog_dev_network:
+        ipv4_address: 30.6.6.200
+    volumes:
+      - ./blogapp-be:/home/dev/backend
+    command: npx nodemon server.js
+
+
+  service-blog-frontend:
+    container_name: blog-frontend
+    image: testing_blog_frontend:latest
+    build:
+      context: .
+      dockerfile: blogapp/docker/Dockerfile
+    ports:
+      - 3000:3000
+    env_file:
+      - ./blogapp/.env
+    networks:
+      blog_dev_network:
+        ipv4_address: 30.6.7.202
+    volumes:
+      - ./blogapp:/home/dev/frontend
+    command: npm run dev
+
+networks:
+  blog_dev_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 30.6.0.0/16

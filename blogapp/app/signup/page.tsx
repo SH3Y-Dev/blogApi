@@ -61,7 +61,6 @@ const RegisterPage = () => {
     return;
   }
 
-  // ✅ Store token in cookie and email in localStorage
   Cookies.set("token", data.token);
   localStorage.setItem("userEmail", data.data.user.email);
   window.dispatchEvent(new Event("user-logged-in"));
